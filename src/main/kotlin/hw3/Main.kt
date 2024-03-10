@@ -3,7 +3,7 @@ package hw3
 val PHONE_REGEX = Regex("""add [A-Za-z0-9._-]+ phone \+?[0-9]+""")
 val EMAIL_REGEX = Regex("""add [A-Za-z0-9._-]+ email [a-z0-9._-]+@[a-z0-9._-]+.[a-z]+""")
 val SHOW_REGEX = Regex("""show [A-Za-z0-9._-]+""")
-val FIND_REGEX = Regex("""find [A-Za-z0-9@._-]+""")
+val FIND_REGEX = Regex("""find \+?[A-Za-z0-9@._-]+""")
 
 
 val dictionary = mutableMapOf<String, Info>()
@@ -34,7 +34,8 @@ class Help(private val fullCommandText: String) : Command {
         println("help")
         println("add <Имя> phone <Номер телефона>")
         println("add <Имя> email <Адрес электронной почты>")
-        println("show")
+        println("show <Имя>")
+        println("find <параметр>")
     }
 }
 
@@ -53,13 +54,14 @@ class AddEmail(private val fullCommandText: String) : Command {
         val parts = fullCommandText.split(" ")
         val name = parts[1]
         val email = parts[3]
+
         val info = dictionary[name]
         if(info == null){
-            dictionary[name] = Info(mutableListOf<String>(), mutableListOf(email))
+            dictionary[name] = Info(mutableListOf(), mutableListOf(email))
         }else{
             info.emails.addLast(email)
         }
-        println("Email added")
+        println("Email добавлен")
     }
 
     fun getText(): String {
@@ -77,13 +79,14 @@ class AddPhone(private val fullCommandText: String) : Command {
         val parts = fullCommandText.split(" ")
         val name = parts[1]
         val phone = parts[3]
+
         val info = dictionary[name]
         if(info == null){
-            dictionary[name] = Info(mutableListOf(phone), mutableListOf<String>())
+            dictionary[name] = Info(mutableListOf(phone), mutableListOf())
         }else{
             info.phones.addLast(phone)
         }
-        println("Phone added")
+        println("Phone добавлен")
     }
 
     fun getText(): String {
@@ -98,11 +101,21 @@ class Show(private val fullCommandText: String) : Command {
 
 
     fun showPerson(){
+        val person = findPerson()
+
+        if(person != null) println(person)
+        else println("-- Не найден!")
+    }
+
+    fun findPerson(): Person?{
         val parts = fullCommandText.split(" ")
         val name = parts[1]
         val info = dictionary[name]
-        if(info == null) println("\"$name\' не найден!")
-        else println("$name $info")
+
+        return if(info != null)
+            Person(name, info)
+        else
+            null
     }
 }
 
@@ -123,19 +136,21 @@ class Find(private val fullCommandText: String) : Command {
     }
 
     fun findAndShow(){
+        val persons = find()
+        if(persons.isNotEmpty()) println(persons)
+        else println("-- Совпадений не найдено")
+    }
+
+    fun find(): Set<Person>{
         val found = fullCommandText.split(" ")[1]
-        //val names = mutableListOf<String>()
-        val names = mutableSetOf<String>()
+        val persons = mutableSetOf<Person>()
         dictionary.forEach{(key, value) ->
-                val phones = value.phones
-                val emails = value.emails
-                if (phones.indexOf(found) >= 0) names.add(key)
-                if (emails.indexOf(found) >= 0) names.add(key)
+            val phones = value.phones
+            val emails = value.emails
+            if (phones.indexOf(found) >= 0) persons.add(Person(key, value))
+            if (emails.indexOf(found) >= 0) persons.add(Person(key, value))
         }
-
-        if(names.isNotEmpty()) println(names)
-        else println("\"$found\" не найдено")
-
+        return persons
     }
 }
 
