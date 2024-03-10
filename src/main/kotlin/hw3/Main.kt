@@ -29,6 +29,13 @@ class Help(private val fullCommandText: String) : Command {
     override fun isValid(): Boolean {
         return fullCommandText == "help"
     }
+    fun printHelp(){
+        println("exit")
+        println("help")
+        println("add <Имя> phone <Номер телефона>")
+        println("add <Имя> email <Адрес электронной почты>")
+        println("show")
+    }
 }
 
 class Exit(private val fullCommandText: String) : Command {
@@ -42,13 +49,6 @@ class AddEmail(private val fullCommandText: String) : Command {
         return fullCommandText.matches(EMAIL_REGEX)
     }
 
-//    fun getPerson(): Person {
-//        val parts = fullCommandText.split(" ")
-//        // add name email email
-//        return Person(name = parts[1], phone = "", email = parts[3])
-//
-//    }
-
     fun addEmail(){
         val parts = fullCommandText.split(" ")
         val name = parts[1]
@@ -59,6 +59,7 @@ class AddEmail(private val fullCommandText: String) : Command {
         }else{
             info.emails.addLast(email)
         }
+        println("Email added")
     }
 
     fun getText(): String {
@@ -71,11 +72,6 @@ class AddPhone(private val fullCommandText: String) : Command {
         return fullCommandText.matches(PHONE_REGEX)
     }
 
-//    fun getPerson(): Person {
-//        val parts = fullCommandText.split(" ")
-//        // add name phone phone
-//        return Person(name = parts[1], phone = parts[3], email = "")
-//    }
 
     fun addPhone(){
         val parts = fullCommandText.split(" ")
@@ -87,6 +83,7 @@ class AddPhone(private val fullCommandText: String) : Command {
         }else{
             info.phones.addLast(phone)
         }
+        println("Phone added")
     }
 
     fun getText(): String {
@@ -98,9 +95,7 @@ class Show(private val fullCommandText: String) : Command {
     override fun isValid(): Boolean {
         return fullCommandText.matches(SHOW_REGEX)
     }
-//    companion object {
-//        var lastCommand: Person? = null
-//    }
+
 
     fun showPerson(){
         val parts = fullCommandText.split(" ")
@@ -113,7 +108,12 @@ class Show(private val fullCommandText: String) : Command {
 
 class Unknown() : Command {
     override fun isValid(): Boolean {
-        return false
+        return true
+    }
+
+    fun showError(){
+        println("  -- Комманда не распознана! Повторите.")
+        Help("").printHelp()
     }
 }
 
@@ -151,36 +151,15 @@ fun main() {
         if (command.isValid()) {
             when (command) {
                 is Exit -> return
-                is AddEmail -> {
-                    command.addEmail()
-                    println("Email added")
-
-//                    val person = command.getPerson()
-//                    println("Email added to $person")
-//                    Show.lastCommand = person
-                }
-                is AddPhone -> {
-                    command.addPhone()
-                    println("Phone added")
-
-
-//                    val person = command.getPerson()
-//                    println("Phone added to $person")
-//                    Show.lastCommand = person
-                }
-                is Help -> printHelp()
-                is Show -> {
-                    command.showPerson()
-//                    val cmd = if (Show.lastCommand != null)
-//                        "${Show.lastCommand}"
-//                    else "Not initialized"
-//                    println(cmd)
-                }
+                is AddEmail -> command.addEmail()
+                is AddPhone -> command.addPhone()
+                is Help -> command.printHelp()
+                is Show -> command.showPerson()
                 is Find -> command.findAndShow()
-                is Unknown -> printHelp()
+                is Unknown -> command.showError()
             }
         } else {
-            printHelp()
+            Unknown().showError()
         }
     }
 }
@@ -201,19 +180,10 @@ fun readCommand(): Command {
                     AddEmail(fullCommandText)
                 else Unknown()
             }
-
             "show" -> Show(fullCommandText)
             "find" -> Find(fullCommandText)
             else -> Unknown()
         }
     }
     return Unknown()
-}
-
-fun printHelp() {
-    println("exit")
-    println("help")
-    println("add <Имя> phone <Номер телефона>")
-    println("add <Имя> email <Адрес электронной почты>")
-    println("show")
 }
